@@ -3,10 +3,9 @@ import 'package:flutter/material.dart';
 import 'package:women_safety_app/utils/quotes.dart';
 
 class CustomAppBar extends StatelessWidget {
-  // const CustomAppBar({super.key});
-  Function? onTap;
-  int? quoteIndex;
-  CustomAppBar({this.onTap, this.quoteIndex});
+  final Function? onTap;
+  final int? quoteIndex;
+  const CustomAppBar({Key? key, this.onTap, this.quoteIndex}) : super(key: key);
 
   @override
   Widget build(BuildContext context) {

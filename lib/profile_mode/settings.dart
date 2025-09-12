@@ -1,14 +1,9 @@
-import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:fluttertoast/fluttertoast.dart';
 import 'package:women_safety_app/child/bottom_page.dart';
 import 'package:women_safety_app/components/PrimaryButton.dart';
-
 import '../child/bottom_screens/profile_page.dart';
-import '../parent/parent_register_screen.dart';
 import '../utils/constants.dart';
-import 'personal_info_page.dart';
 
 class ProfileItem {
   final String? item;
@@ -36,20 +31,10 @@ class _SettingsPageState extends State<SettingsPage> {
   ];
   static String? displayName;
   Future<String?> getName() async {
-    try {
-      FirebaseAuth auth = await FirebaseAuth.instance;
-
-      var snapshot = await FirebaseFirestore.instance
-          .collection("users")
-          .doc(auth.currentUser!.uid)
-          .get();
-
-      displayName = snapshot['name'];
-      return displayName;
-    } catch (e) {
-      print('Error getting display name: $e');
-      return null;
-    }
+    // return a dummy display name for the UI-only app
+    await Future.delayed(Duration(milliseconds: 50));
+    displayName = 'Demo User';
+    return displayName;
   }
 
   @override
@@ -102,15 +87,11 @@ class _SettingsPageState extends State<SettingsPage> {
             PrimaryButton(
                 title: "Confirm",
                 onPressed: () async {
-                  try {
-                    await FirebaseAuth.instance.signOut();
-                    setState(() {
-                      displayName == null;
-                    });
-                    goTo(context, BottomPage());
-                  } on FirebaseAuthException catch (e) {
-                    dialogueBox(context, e.toString());
-                  }
+                  // dummy logout: clear displayName
+                  setState(() {
+                    displayName = null;
+                  });
+                  goTo(context, BottomPage());
                 }),
             Center(
               child: TextButton(

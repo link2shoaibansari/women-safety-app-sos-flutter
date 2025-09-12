@@ -1,5 +1,3 @@
-import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:women_safety_app/child/bottom_page.dart';
 import 'package:women_safety_app/components/PrimaryButton.dart';
@@ -9,7 +7,6 @@ import 'package:women_safety_app/child/register_child.dart';
 import 'package:women_safety_app/db/share_pref.dart';
 import 'package:women_safety_app/parent/parent_register_screen.dart';
 import 'package:women_safety_app/utils/constants.dart';
-
 import '../parent/parent_home_screen.dart';
 
 class LoginScreen extends StatefulWidget {
@@ -22,70 +19,24 @@ class _LoginScreenState extends State<LoginScreen> {
   final _formKey = GlobalKey<FormState>();
   final _formData = Map<String, Object>();
   bool isLoading = false;
-
-  @override
-  void initState() {
-    super.initState();
-  }
-
-  _onSubmit() async {
+  void _onSubmit() async {
     _formKey.currentState!.save();
-
-    try {
-      if (mounted) {
-        setState(() {
-          isLoading = true;
-        });
-      }
-
-      UserCredential userCredential =
-          await FirebaseAuth.instance.signInWithEmailAndPassword(
-        email: _formData['email'].toString(),
-        password: _formData['password'].toString(),
-      );
-
-      if (mounted) {
-        setState(() {
-          isLoading = false;
-        });
-      }
-
-      if (userCredential.user != null) {
-        FirebaseFirestore.instance
-            .collection('users')
-            .doc(userCredential.user!.uid)
-            .get()
-            .then((value) {
-          if (mounted) {
-            print("====> ${value['type']}");
-            if (value['type'] == 'parent') {
-              MySharedPrefference.saveUserType('parent');
-              goTo(context, ParentHomeScreen());
-            } else {
-              MySharedPrefference.saveUserType('child');
-              goTo(context, BottomPage());
-            }
-          }
-        });
-      }
-    } on FirebaseAuthException catch (e) {
-      if (mounted) {
-        setState(() {
-          isLoading = false;
-        });
-      }
-
-      if (e.code == 'user-not-found') {
-        dialogueBox(context, 'No user found for that email.');
-        print('No user found for that email.');
-      } else if (e.code == 'wrong-password') {
-        dialogueBox(context, 'Wrong password provided for that user.');
-        print('Wrong password provided for that user.');
-      }
+    setState(() {
+      isLoading = true;
+    });
+    await Future.delayed(Duration(seconds: 1));
+    // Dummy logic: if email contains 'parent', go to ParentHomeScreen, else BottomPage
+    if (_formData['email'] != null &&
+        _formData['email'].toString().contains('parent')) {
+      MySharedPrefference.saveUserType('parent');
+      goTo(context, ParentHomeScreen());
+    } else {
+      MySharedPrefference.saveUserType('child');
+      goTo(context, BottomPage());
     }
-
-    print(_formData['email']);
-    print(_formData['password']);
+    setState(() {
+      isLoading = false;
+    });
   }
 
   @override
@@ -142,6 +93,7 @@ class _LoginScreenState extends State<LoginScreen> {
                                         !email.contains("@")) {
                                       return 'enter correct email';
                                     }
+                                    return null;
                                   },
                                 ),
                                 CustomTextField(

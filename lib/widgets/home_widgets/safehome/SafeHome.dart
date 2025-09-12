@@ -1,9 +1,6 @@
-import 'package:background_sms/background_sms.dart';
 import 'package:flutter/material.dart';
 import 'package:fluttertoast/fluttertoast.dart';
-import 'package:geocoding/geocoding.dart';
-import 'package:geolocator/geolocator.dart';
-import 'package:permission_handler/permission_handler.dart';
+// Dummy implementations for location/SMS in dummy app
 import 'package:women_safety_app/db/db_services.dart';
 import 'package:women_safety_app/model/contactsm.dart';
 
@@ -13,87 +10,26 @@ class SafeHome extends StatefulWidget {
 }
 
 class _SafeHomeState extends State<SafeHome> {
-  Position? _curentPosition;
-  String? _curentAddress;
-  LocationPermission? permission;
+  // For the dummy app we keep simple fields and no real location/SMS calls.
+  String? _curentAddress = "Unknown location";
 
-  _isPermissionGranted() async => await Permission.sms.status.isGranted;
-  _sendSms(String phoneNumber, String message, {int? simSlot}) async {
-    SmsStatus result = await BackgroundSms.sendMessage(
-        phoneNumber: phoneNumber, message: message, simSlot: 1);
-    if (result == SmsStatus.sent) {
-      print("Sent");
-      Fluttertoast.showToast(msg: "send");
-    } else {
-      Fluttertoast.showToast(msg: "failed");
-    }
-  }
-
-  Future<bool> _handleLocationPermission() async {
-    bool serviceEnabled;
-    LocationPermission permission;
-
-    serviceEnabled = await Geolocator.isLocationServiceEnabled();
-    if (!serviceEnabled) {
-      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
-          content: Text(
-              'Location services are disabled. Please enable the services')));
-      return false;
-    }
-    permission = await Geolocator.checkPermission();
-    if (permission == LocationPermission.denied) {
-      permission = await Geolocator.requestPermission();
-      if (permission == LocationPermission.denied) {
-        ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(content: Text('Location permissions are denied')));
-        return false;
-      }
-    }
-    if (permission == LocationPermission.deniedForever) {
-      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
-          content: Text(
-              'Location permissions are permanently denied, we cannot request permissions.')));
-      return false;
-    }
-    return true;
+  _isPermissionGranted() async => true;
+  _sendSms(String phoneNumber, String message) async {
+    // no-op in dummy
+    Fluttertoast.showToast(msg: "(Dummy) message prepared for $phoneNumber");
   }
 
   _getCurrentLocation() async {
-    final hasPermission = await _handleLocationPermission();
-    if (!hasPermission) return;
-    await Geolocator.getCurrentPosition(
-            desiredAccuracy: LocationAccuracy.high,
-            forceAndroidLocationManager: true)
-        .then((Position position) {
-      setState(() {
-        _curentPosition = position;
-        print(_curentPosition!.latitude);
-        _getAddressFromLatLon();
-      });
-    }).catchError((e) {
-      Fluttertoast.showToast(msg: e.toString());
+    // set a dummy address
+    setState(() {
+      _curentAddress = "123 Demo Street, Demo City";
     });
-  }
-
-  _getAddressFromLatLon() async {
-    try {
-      List<Placemark> placemarks = await placemarkFromCoordinates(
-          _curentPosition!.latitude, _curentPosition!.longitude);
-
-      Placemark place = placemarks[0];
-      setState(() {
-        _curentAddress =
-            "${place.locality},${place.postalCode},${place.street},";
-      });
-    } catch (e) {
-      Fluttertoast.showToast(msg: e.toString());
-    }
   }
 
   @override
   void initState() {
     super.initState();
-
+    // initialize dummy state
     _getCurrentLocation();
   }
 
@@ -114,7 +50,7 @@ class _SafeHomeState extends State<SafeHome> {
                   style: TextStyle(fontSize: 20),
                 ),
                 SizedBox(height: 10),
-                if (_curentPosition != null) Text(_curentAddress!),
+                if (_curentAddress != null) Text(_curentAddress!),
                 PrimaryButton(
                     title: "GET LOCATION",
                     onPressed: () {
@@ -124,7 +60,6 @@ class _SafeHomeState extends State<SafeHome> {
                 PrimaryButton(
                     title: "SEND ALERT",
                     onPressed: () async {
-                      String recipients = "";
                       List<TContact> contactList =
                           await DatabaseHelper().getContactList();
                       print(contactList.length);
@@ -133,7 +68,7 @@ class _SafeHomeState extends State<SafeHome> {
                             msg: "emergency contact is empty");
                       } else {
                         String messageBody =
-                            "https://www.google.com/maps/search/?api=1&query=${_curentPosition!.latitude}%2C${_curentPosition!.longitude}. $_curentAddress";
+                            "(Dummy) My location: $_curentAddress";
 
                         if (await _isPermissionGranted()) {
                           contactList.forEach((element) {
@@ -197,7 +132,7 @@ class _SafeHomeState extends State<SafeHome> {
 class PrimaryButton extends StatelessWidget {
   final String title;
   final Function onPressed;
-  bool loading;
+  final bool loading;
   PrimaryButton(
       {required this.title, required this.onPressed, this.loading = false});
 

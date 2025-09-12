@@ -7,8 +7,9 @@ class SafeWebView extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return SafeArea(
-      child: WebView(
-        initialUrl: url,
+      child: WebViewWidget(
+        controller: WebViewController()
+          ..loadRequest(Uri.parse(url ?? 'https://flutter.dev')),
       ),
     );
   }

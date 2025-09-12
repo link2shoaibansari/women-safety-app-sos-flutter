@@ -1,11 +1,6 @@
-import 'dart:math';
-
-import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter_rating_bar/flutter_rating_bar.dart';
 import 'package:fluttertoast/fluttertoast.dart';
 import 'package:women_safety_app/components/PrimaryButton.dart';
-import 'package:women_safety_app/components/SecondaryButton.dart';
 import 'package:women_safety_app/components/custom_textfield.dart';
 import 'package:women_safety_app/utils/constants.dart';
 
@@ -19,6 +14,19 @@ class _ReviewPageState extends State<ReviewPage> {
   TextEditingController viewsC = TextEditingController();
   bool isSaving = false;
   double? ratings;
+  // Dummy review list for UI-only
+  List<Map<String, dynamic>> dummyReviews = [
+    {
+      'location': 'Central Park',
+      'views': 'Safe and well-lit.',
+      'ratings': 4.0,
+    },
+    {
+      'location': 'Main Street',
+      'views': 'Crowded but safe.',
+      'ratings': 3.5,
+    },
+  ];
 
   showAlert(BuildContext context) {
     showDialog(
@@ -47,20 +55,23 @@ class _ReviewPageState extends State<ReviewPage> {
                   ),
                 ),
                 const SizedBox(height: 15),
-                RatingBar.builder(
-                  initialRating: 1,
-                  minRating: 1,
-                  direction: Axis.horizontal,
-                  itemCount: 5,
-                  unratedColor: Colors.grey.shade300,
-                  itemPadding: const EdgeInsets.symmetric(horizontal: 4.0),
-                  itemBuilder: (context, _) =>
-                      const Icon(Icons.star, color: kColorDarkRed),
-                  onRatingUpdate: (rating) {
-                    setState(() {
-                      ratings = rating;
-                    });
-                  },
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: List.generate(5, (star) {
+                    return IconButton(
+                      icon: Icon(
+                        Icons.star,
+                        color: star < (ratings ?? 1.0).round()
+                            ? kColorDarkRed
+                            : Colors.grey.shade300,
+                      ),
+                      onPressed: () {
+                        setState(() {
+                          ratings = (star + 1).toDouble();
+                        });
+                      },
+                    );
+                  }),
                 ),
               ],
             )),
@@ -81,19 +92,19 @@ class _ReviewPageState extends State<ReviewPage> {
         });
   }
 
-  saveReview() async {
+  void saveReview() async {
     setState(() {
       isSaving = true;
     });
-    await FirebaseFirestore.instance.collection('reviews').add({
+    await Future.delayed(Duration(milliseconds: 500));
+    dummyReviews.add({
       'location': locationC.text,
       'views': viewsC.text,
-      "ratings": ratings
-    }).then((value) {
-      setState(() {
-        isSaving = false;
-        Fluttertoast.showToast(msg: 'review uploaded successfully');
-      });
+      'ratings': ratings ?? 1.0,
+    });
+    setState(() {
+      isSaving = false;
+      Fluttertoast.showToast(msg: 'review uploaded (dummy)');
     });
   }
 
@@ -113,65 +124,45 @@ class _ReviewPageState extends State<ReviewPage> {
                     ),
                   ),
                   Expanded(
-                    child: StreamBuilder(
-                      stream: FirebaseFirestore.instance
-                          .collection('reviews')
-                          .snapshots(),
-                      builder: (BuildContext context,
-                          AsyncSnapshot<QuerySnapshot> snapshot) {
-                        if (!snapshot.hasData) {
-                          return Center(child: CircularProgressIndicator());
-                        }
-
-                        return ListView.separated(
-                          separatorBuilder: (context, index) {
-                            return Divider();
-                          },
-                          itemCount: snapshot.data!.docs.length,
-                          itemBuilder: (BuildContext context, int index) {
-                            final data = snapshot.data!.docs[index];
-                            return Padding(
-                              padding: const EdgeInsets.all(5.0),
-                              child: Card(
-                                elevation: 4,
-                                child: Padding(
-                                  padding: const EdgeInsets.all(8.0),
-                                  child: Column(
-                                    children: [
-                                      Text(
-                                        "Location : ${data['location']}",
-                                        style: TextStyle(
-                                            fontSize: 18, color: Colors.black),
-                                      ),
-                                      Text(
-                                        "Comments : ${data['views']}",
-                                        style: TextStyle(
-                                            fontSize: 16, color: Colors.black),
-                                      ),
-                                      RatingBar.builder(
-                                        initialRating: data['ratings'],
-                                        minRating: 1,
-                                        direction: Axis.horizontal,
-                                        itemCount: 5,
-                                        ignoreGestures: true,
-                                        unratedColor: Colors.grey.shade300,
-                                        itemPadding: const EdgeInsets.symmetric(
-                                            horizontal: 4.0),
-                                        itemBuilder: (context, _) => const Icon(
-                                            Icons.star,
-                                            color: kColorDarkRed),
-                                        onRatingUpdate: (rating) {
-                                          setState(() {
-                                            ratings = rating;
-                                          });
-                                        },
-                                      ),
-                                    ],
+                    child: ListView.separated(
+                      separatorBuilder: (context, index) => Divider(),
+                      itemCount: dummyReviews.length,
+                      itemBuilder: (context, index) {
+                        final data = dummyReviews[index];
+                        return Padding(
+                          padding: const EdgeInsets.all(5.0),
+                          child: Card(
+                            elevation: 4,
+                            child: Padding(
+                              padding: const EdgeInsets.all(8.0),
+                              child: Column(
+                                children: [
+                                  Text(
+                                    "Location : ${data['location']}",
+                                    style: TextStyle(
+                                        fontSize: 18, color: Colors.black),
                                   ),
-                                ),
+                                  Text(
+                                    "Comments : ${data['views']}",
+                                    style: TextStyle(
+                                        fontSize: 16, color: Colors.black),
+                                  ),
+                                  Row(
+                                    mainAxisAlignment: MainAxisAlignment.center,
+                                    children: List.generate(5, (star) {
+                                      double rating = data['ratings'] ?? 1.0;
+                                      return Icon(
+                                        Icons.star,
+                                        color: star < rating.round()
+                                            ? kColorDarkRed
+                                            : Colors.grey.shade300,
+                                      );
+                                    }),
+                                  ),
+                                ],
                               ),
-                            );
-                          },
+                            ),
+                          ),
                         );
                       },
                     ),

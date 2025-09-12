@@ -1,39 +1,20 @@
 import 'dart:io';
-
-import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:firebase_auth/firebase_auth.dart';
-import 'package:firebase_storage/firebase_storage.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:fluttertoast/fluttertoast.dart';
 import 'package:image_picker/image_picker.dart';
-import 'package:uuid/uuid.dart';
 import 'package:women_safety_app/child/bottom_page.dart';
-import 'package:women_safety_app/child/child_login_screen.dart';
 import 'package:women_safety_app/components/PrimaryButton.dart';
 import 'package:women_safety_app/components/custom_textfield.dart';
 import 'package:women_safety_app/utils/constants.dart';
 
+// Dummy wrapper for UI-only app, always shows ProfilePage
 class CheckUserStatusBeforeChatOnProfile extends StatelessWidget {
   const CheckUserStatusBeforeChatOnProfile({super.key});
 
   @override
   Widget build(BuildContext context) {
-    return StreamBuilder<User?>(
-      stream: FirebaseAuth.instance.authStateChanges(),
-      builder: (context, snapshot) {
-        if (snapshot.connectionState == ConnectionState.waiting) {
-          return CircularProgressIndicator();
-        } else {
-          if (snapshot.hasData) {
-            return ProfilePage();
-          } else {
-            Fluttertoast.showToast(msg: 'please login first');
-            return LoginScreen();
-          }
-        }
-      },
-    );
+    return ProfilePage();
   }
 }
 
@@ -55,20 +36,16 @@ class _ProfilePageState extends State<ProfilePage> {
   String? profilePic;
   String? downloadUrl;
   bool isSaving = false;
-  getDate() async {
-    await FirebaseFirestore.instance
-        .collection('users')
-        .where('id', isEqualTo: FirebaseAuth.instance.currentUser!.uid)
-        .get()
-        .then((value) {
-      setState(() {
-        nameC.text = value.docs.first['name'];
-        childEmailC.text = value.docs.first['childEmail'];
-        guardianEmailC.text = value.docs.first['guardiantEmail'];
-        phoneC.text = value.docs.first['phone'];
-        id = value.docs.first.id;
-        profilePic = value.docs.first['profilePic'];
-      });
+
+  // Dummy: populate with static data for UI-only
+  void getDate() {
+    setState(() {
+      nameC.text = 'Jane Doe';
+      childEmailC.text = 'child@email.com';
+      guardianEmailC.text = 'parent@email.com';
+      phoneC.text = '1234567890';
+      id = 'dummy_id';
+      profilePic = null;
     });
   }
 
@@ -206,38 +183,21 @@ class _ProfilePageState extends State<ProfilePage> {
     );
   }
 
+  // Dummy: just return the file path for UI-only
   Future<String?> uploadImage(String filePath) async {
-    try {
-      final filenName = Uuid().v4();
-      final Reference fbStorage =
-          FirebaseStorage.instance.ref('profile').child(filenName);
-      final UploadTask uploadTask = fbStorage.putFile(File(filePath));
-      await uploadTask.then((p0) async {
-        downloadUrl = await fbStorage.getDownloadURL();
-      });
-      return downloadUrl;
-    } catch (e) {
-      Fluttertoast.showToast(msg: e.toString());
-    }
+    return filePath;
   }
 
-  update() async {
+  // Dummy: just show a toast and go to BottomPage
+  void update() async {
     setState(() {
       isSaving = true;
     });
-    uploadImage(profilePic!).then((value) {
-      Map<String, dynamic> data = {
-        'name': nameC.text,
-        'profilePic': downloadUrl,
-      };
-      FirebaseFirestore.instance
-          .collection('users')
-          .doc(FirebaseAuth.instance.currentUser!.uid)
-          .update(data);
-      setState(() {
-        isSaving = false;
-        goTo(context, BottomPage());
-      });
+    await Future.delayed(Duration(seconds: 1));
+    Fluttertoast.showToast(msg: 'Profile updated (dummy)');
+    setState(() {
+      isSaving = false;
+      goTo(context, BottomPage());
     });
   }
 }

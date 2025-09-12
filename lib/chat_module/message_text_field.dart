@@ -1,14 +1,7 @@
 import 'dart:io';
 
-import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:firebase_core/firebase_core.dart';
-import 'package:firebase_storage/firebase_storage.dart';
 import 'package:flutter/material.dart';
-import 'package:fluttertoast/fluttertoast.dart';
-import 'package:geocoding/geocoding.dart';
-import 'package:geolocator/geolocator.dart';
 import 'package:image_picker/image_picker.dart';
-import 'package:uuid/uuid.dart';
 
 class MessageTextField extends StatefulWidget {
   final String currentId;
@@ -23,12 +16,9 @@ class MessageTextField extends StatefulWidget {
 
 class _MessageTextFieldState extends State<MessageTextField> {
   TextEditingController _controller = TextEditingController();
-  Position? _curentPosition;
-  String? _curentAddress;
   String? message;
   File? imageFile;
 
-  LocationPermission? permission;
   Future getImage() async {
     ImagePicker _picker = ImagePicker();
     await _picker.pickImage(source: ImageSource.gallery).then((XFile? xFile) {
@@ -50,83 +40,14 @@ class _MessageTextFieldState extends State<MessageTextField> {
   }
 
   Future uploadImage() async {
-    String fileName = Uuid().v1();
-    int status = 1;
-    var ref =
-        FirebaseStorage.instance.ref().child('images').child("$fileName.jpg");
-    var uploadTask = await ref.putFile(imageFile!);
-    if (status == 1) {
-      String imageUrl = await uploadTask.ref.getDownloadURL();
-      await sendMessage(imageUrl, 'img');
-    }
-  }
-
-  Future _getCurrentLocation() async {
-    permission = await Geolocator.checkPermission();
-    if (permission == LocationPermission.denied) {
-      permission = await Geolocator.requestPermission();
-      Fluttertoast.showToast(msg: "Location permissions are  denind");
-      if (permission == LocationPermission.deniedForever) {
-        Fluttertoast.showToast(
-            msg: "Location permissions are permanently denind");
-      }
-    }
-    Geolocator.getCurrentPosition(
-            desiredAccuracy: LocationAccuracy.high,
-            forceAndroidLocationManager: true)
-        .then((Position position) {
-      setState(() {
-        _curentPosition = position;
-        print(_curentPosition!.latitude);
-        _getAddressFromLatLon();
-      });
-    }).catchError((e) {
-      Fluttertoast.showToast(msg: e.toString());
-    });
-  }
-
-  _getAddressFromLatLon() async {
-    try {
-      List<Placemark> placemarks = await placemarkFromCoordinates(
-          _curentPosition!.latitude, _curentPosition!.longitude);
-
-      Placemark place = placemarks[0];
-      setState(() {
-        _curentAddress =
-            "${place.locality},${place.postalCode},${place.street},";
-      });
-    } catch (e) {
-      Fluttertoast.showToast(msg: e.toString());
-    }
+    // Dummy upload logic
+    await Future.delayed(Duration(seconds: 1));
+    await sendMessage('dummy_image_url', 'img');
   }
 
   sendMessage(String message, String type) async {
-    await FirebaseFirestore.instance
-        .collection('users')
-        .doc(widget.currentId)
-        .collection('messages')
-        .doc(widget.friendId)
-        .collection('chats')
-        .add({
-      'senderId': widget.currentId,
-      'receiverId': widget.friendId,
-      'message': message,
-      'type': type,
-      'date': DateTime.now(),
-    });
-    await FirebaseFirestore.instance
-        .collection('users')
-        .doc(widget.friendId)
-        .collection('messages')
-        .doc(widget.currentId)
-        .collection('chats')
-        .add({
-      'senderId': widget.currentId,
-      'receiverId': widget.friendId,
-      'message': message,
-      'type': type,
-      'date': DateTime.now(),
-    });
+    // Dummy send message logic
+    print('Sending message: $message of type: $type');
   }
 
   @override
@@ -195,12 +116,9 @@ class _MessageTextFieldState extends State<MessageTextField> {
           mainAxisAlignment: MainAxisAlignment.spaceEvenly,
           children: [
             chatsIcon(Icons.location_pin, "location", () async {
-              await _getCurrentLocation();
-              Future.delayed(Duration(seconds: 2), () {
-                message =
-                    "https://www.google.com/maps/search/?api=1&query=${_curentPosition!.latitude}%2C${_curentPosition!.longitude}. $_curentAddress";
-                sendMessage(message!, "link");
-              });
+              // Dummy location logic
+              message = "Dummy location message";
+              sendMessage(message ?? '', "link");
             }),
             chatsIcon(Icons.camera_alt, "Camera", () async {
               await getImageFromCamera();

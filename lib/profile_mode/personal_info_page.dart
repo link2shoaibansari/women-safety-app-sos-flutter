@@ -1,8 +1,4 @@
-import 'dart:io';
-
-import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
-import 'package:image_picker/image_picker.dart';
 
 class PersonalInfoPage extends StatefulWidget {
   const PersonalInfoPage({super.key});
@@ -16,18 +12,16 @@ class _PersonalInfoPageState extends State<PersonalInfoPage> {
   String? downloadUrl;
   bool isSaving = false;
   Future<UserProfile> getUserProfile(String uid) async {
-    DocumentSnapshot<Map<String, dynamic>> snapshot =
-        await FirebaseFirestore.instance.collection('users').doc(uid).get();
-
-    profilePic = snapshot['profilePic'];
-
+    // Return dummy data for UI-only app
+    await Future.delayed(Duration(milliseconds: 50));
+    profilePic = null;
     return UserProfile(
       uid: uid,
-      name: snapshot['name'],
-      childemail: snapshot['childEmail'],
-      guardiantEmail: snapshot['guardiantEmail'],
-      phone: snapshot['phone'],
-      profilePicture: snapshot['profilePic'] ?? "",
+      name: 'Demo User',
+      childemail: 'child@example.com',
+      guardiantEmail: 'parent@example.com',
+      phone: '1234567890',
+      profilePicture: '',
     );
   }
 
@@ -60,49 +54,26 @@ class _PersonalInfoPageState extends State<PersonalInfoPage> {
           children: [
             GestureDetector(
               onTap: () async {
-                final XFile? pickImage = await ImagePicker()
-                    .pickImage(source: ImageSource.gallery, imageQuality: 50);
-                if (pickImage != null) {
-                  setState(() {
-                    profilePic = pickImage.path;
-                  });
-                }
+                // In dummy app, ignore image picking
+                setState(() {
+                  profilePic = null;
+                });
               },
               child: Container(
-                child: profilePic == null
-                    ? Center(
-                        child: CircleAvatar(
-                          backgroundColor: Colors.deepPurple,
-                          radius: 80,
-                          child: Center(
-                              child: Image.asset(
-                            'assets/add_pic.png',
-                            height: 80,
-                            width: 80,
-                            fit: BoxFit.cover,
-                          )),
-                        ),
-                      )
-                    : profilePic!.contains('http')
-                        ? Center(
-                            child: ClipOval(
-                              child: Container(
-                                width: 160.0, // 2 times the radius
-                                height: 160.0, // 2 times the radius
-                                color: Colors.deepPurple,
-                                child: CircleAvatar(
-                                  radius: 80,
-                                  backgroundImage: NetworkImage(profilePic!),
-                                ),
-                              ),
-                            ),
-                          )
-                        : Center(
-                            child: CircleAvatar(
-                                backgroundColor: Colors.deepPurple,
-                                radius: 80,
-                                backgroundImage: FileImage(File(profilePic!))),
-                          ),
+                child: Center(
+                  child: CircleAvatar(
+                    backgroundColor: Colors.deepPurple,
+                    radius: 80,
+                    child: Center(
+                      child: Image.asset(
+                        'assets/add_pic.png',
+                        height: 80,
+                        width: 80,
+                        fit: BoxFit.cover,
+                      ),
+                    ),
+                  ),
+                ),
               ),
             ),
             SizedBox(height: 16),

@@ -4,9 +4,13 @@ import 'package:women_safety_app/utils/constants.dart';
 class PrimaryButton extends StatelessWidget {
   final String title;
   final Function onPressed;
-  bool loading;
-  PrimaryButton(
-      {required this.title, required this.onPressed, this.loading = false});
+  final bool loading;
+  const PrimaryButton({
+    Key? key,
+    required this.title,
+    required this.onPressed,
+    this.loading = false,
+  }) : super(key: key);
 
   @override
   Widget build(BuildContext context) {

@@ -1,8 +1,5 @@
-import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:women_safety_app/child/child_login_screen.dart';
-import 'package:women_safety_app/model/user_model.dart';
 import 'package:women_safety_app/utils/constants.dart';
 import '../components/PrimaryButton.dart';
 import '../components/SecondaryButton.dart';
@@ -14,73 +11,26 @@ class RegisterChildScreen extends StatefulWidget {
 }
 
 class _RegisterChildScreenState extends State<RegisterChildScreen> {
+  bool isLoading = false;
+  final _formKey = GlobalKey<FormState>();
+  final Map<String, Object> _formData = {};
   bool isPasswordShown = true;
   bool isRetypePasswordShown = true;
-
-  final _formKey = GlobalKey<FormState>();
-
-  final _formData = Map<String, Object>();
-  bool isLoading = false;
-
-  _onSubmit() async {
+  void _onSubmit() async {
     _formKey.currentState!.save();
     if (_formData['password'] != _formData['rpassword']) {
       dialogueBox(context, 'password and retype password should be equal');
-    } else {
-      progressIndicator(context);
-      try {
-        setState(() {
-          isLoading = true;
-        });
-        UserCredential userCredential = await FirebaseAuth.instance
-            .createUserWithEmailAndPassword(
-                email: _formData['cemail'].toString(),
-                password: _formData['password'].toString());
-        if (userCredential.user != null) {
-          setState(() {
-            isLoading = true;
-          });
-          final v = userCredential.user!.uid;
-          DocumentReference<Map<String, dynamic>> db =
-              FirebaseFirestore.instance.collection('users').doc(v);
-
-          final user = UserModel(
-            name: _formData['name'].toString(),
-            phone: _formData['phone'].toString(),
-            childEmail: _formData['cemail'].toString(),
-            guardianEmail: _formData['gemail'].toString(),
-            id: v,
-            type: 'child',
-          );
-          final jsonData = user.toJson();
-          await db.set(jsonData).whenComplete(() {
-            goTo(context, LoginScreen());
-            setState(() {
-              isLoading = false;
-            });
-          });
-        }
-      } on FirebaseAuthException catch (e) {
-        if (e.code == 'weak-password') {
-          print('The password provided is too weak.');
-          dialogueBox(context, 'The password provided is too weak.');
-        } else if (e.code == 'email-already-in-use') {
-          print('The account already exists for that email.');
-          dialogueBox(context, 'The account already exists for that email.');
-        }
-        setState(() {
-          isLoading = false;
-        });
-      } catch (e) {
-        print(e);
-        setState(() {
-          isLoading = false;
-        });
-        dialogueBox(context, e.toString());
-      }
+      return;
     }
-    print(_formData['email']);
-    print(_formData['password']);
+    setState(() {
+      isLoading = true;
+    });
+    await Future.delayed(Duration(seconds: 1));
+    // Dummy: always succeed and go to login
+    goTo(context, LoginScreen());
+    setState(() {
+      isLoading = false;
+    });
   }
 
   @override
@@ -169,6 +119,7 @@ class _RegisterChildScreenState extends State<RegisterChildScreen> {
                                           !email.contains("@")) {
                                         return 'enter correct email';
                                       }
+                                      return null;
                                     },
                                   ),
                                   CustomTextField(
@@ -185,6 +136,7 @@ class _RegisterChildScreenState extends State<RegisterChildScreen> {
                                           !email.contains("@")) {
                                         return 'enter correct email';
                                       }
+                                      return null;
                                     },
                                   ),
                                   CustomTextField(
