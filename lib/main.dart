@@ -3,6 +3,7 @@ import 'package:google_fonts/google_fonts.dart';
 import 'package:women_safety_app/db/share_pref.dart';
 // import 'package:women_safety_app/child/bottom_screens/child_home_page.dart';
 import 'child/bottom_page.dart';
+import 'widgets/ihelp_widget.dart';
 
 final navigatorkey = GlobalKey<ScaffoldMessengerState>();
 
@@ -26,7 +27,12 @@ class MyApp extends StatelessWidget {
           ),
           primarySwatch: Colors.blue,
         ),
-        home: BottomPage());
+        home: Stack(
+          children: [
+            BottomPage(),
+            const IHelpWidget(),
+          ],
+        ));
   }
 }
 

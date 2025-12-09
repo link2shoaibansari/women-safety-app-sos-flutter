@@ -48,17 +48,17 @@ class PoliceEmergency extends StatelessWidget {
                       children: [
                         Text(
                           'Active Emergency',
-                          style: TextStyle(
+                          style: const TextStyle(
                             color: Colors.white,
                             fontWeight: FontWeight.bold,
-                            fontSize: MediaQuery.of(context).size.width * 0.06,
+                            fontSize: 20,
                           ),
                         ),
                         Text(
                           'call 0-1-5 for emergencies',
-                          style: TextStyle(
+                          style: const TextStyle(
                             color: Colors.white,
-                            fontSize: MediaQuery.of(context).size.width * 0.045,
+                            fontSize: 14,
                           ),
                         ),
                         Container(
@@ -74,8 +74,7 @@ class PoliceEmergency extends StatelessWidget {
                               style: TextStyle(
                                 color: Colors.red[300],
                                 fontWeight: FontWeight.bold,
-                                fontSize:
-                                    MediaQuery.of(context).size.width * 0.055,
+                                fontSize: 16,
                               ),
                             ),
                           ),
